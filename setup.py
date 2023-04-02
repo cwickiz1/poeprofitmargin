@@ -11,7 +11,7 @@ setup(
     name='poeprofitmargin',
     version='0.1.0',
     packages=find_packages(),
-    url='https://github.com/yourusername/poeprofitmargin',  # Replace 'yourusername' with your GitHub username
+    url='https://github.com/cwickiz1/poeprofitmargin',
     license='MIT',
     author='Craig Wickizer',
     author_email='your.email@example.com',  # Replace with your email address
