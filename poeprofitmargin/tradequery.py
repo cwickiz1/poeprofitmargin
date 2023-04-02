@@ -121,14 +121,23 @@ weapon_filters:
 """
 
 import requests
-import requests_cache
 
-# Enable caching for all requests
-requests_cache.install_cache('my_cache')
+class TradeQuery():
+    head = {"Content-Type": "application/json", "User-Agent": "NAME_YOU_CHOOSE"}
+    item_trade_query_url = 'https://www.pathofexile.com/api/trade/search/'
+    item_trade_fetch_url = 'https://www.pathofexile.com/api/trade/fetch/'
 
-def get_post(url,header,payload):
-    cache_key = (f'{url}/{payload}',)
-    response = requests.post(url, json=payload, headers=header, cache_key=cache_key)
+def query_trade(league,payload):
+    response = requests.post(TradeQuery.item_trade_query_url+league, json=payload, headers=TradeQuery.head).json()
+    return response
+
+def get_trade_results(response):
+    #cache_key = (f'{url}/{payload}',)
+    r_id = response['id']
+    r_result = ','.join(response['result'][:10])
+    result = f'{r_result}?query={r_id}'
+    
+    response = requests.get(TradeQuery.item_trade_fetch_url+result, headers=TradeQuery.head)#, cache_key=cache_key)
 
     # Check if the response was cached
     if response.from_cache:
@@ -138,11 +147,10 @@ def get_post(url,header,payload):
 
     return response.json()
 
-
 def make_filter(name):
     pass
 
-def make_trade_query(status,name=None):
+def make_trade_query(status,name=None,misc_filters=None,stat_filters=None):
     """
     
 
@@ -168,6 +176,12 @@ def make_trade_query(status,name=None):
         },
         "sort": {"price": "asc"}
     }
+    if stat_filters:
+        query['query']['stats'][0]['filters'] = stat_filters
+    if name:
+        query['query']['name'] = name
+    if misc_filters:
+        query['query']['filters']['misc_filters'] = misc_filters
     return query
 
 def make_bulk_query(have : list, want : list, minimum : int):

@@ -4,6 +4,7 @@ Created on Sat Mar 11 20:37:28 2023
 
 @author: Craig Wickizer
 """
+import os
 import requests
 import pandas as pd
 from baseitem import BaseItemData
@@ -27,10 +28,17 @@ class UniqueData(BaseItemData):
         Read current poe.ninja unique prices and update stored prices
     """
     def __init__(self):
+        path = os.getcwd()
+        dir = os.path.dirname(path)
+        dir = os.path.join(dir, 'data')
+        os.chdir(dir)
+        
         BaseItemData.__init__(self)
         self.data = pd.read_csv('uniques.csv')
         self.unique_data = pd.DataFrame()
         self.unique_types = ['Accessory','Armour','Weapon','Flask','Jewel']
+        os.chdir(path)
+
 
     def get_data(self,league):
         dfs = []

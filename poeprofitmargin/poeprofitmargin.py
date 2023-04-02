@@ -8,12 +8,20 @@ import sys
 import pandas as pd
 import itertools
 from tqdm import tqdm
+import requests
 
 from gem import GemData
 from currency import CurrData
 from uniques import UniqueData
+import tradequery as tq
+import requests_cache
 
-def unique_3to1(item,item_data):
+# Enable caching for all requests
+requests_cache.install_cache('my_cache', backend='sqlite')
+
+head = {"Content-Type": "application/json", "User-Agent": "NAME_YOU_CHOOSE"}
+
+def unique_3to1(league,item,item_data):
     """
     Parameters
     -------------
@@ -27,16 +35,27 @@ def unique_3to1(item,item_data):
     """
     data = item_data.get_price_data()
     data = data[data['name']==item]
-    #Make regex for (#s) to #% with or without +
-    #TODO
+    misc_filters = {'disabled': 'false', 'filters': {'corrupted': {'option': "false"}}}
     
-    #Make Query to trade with target stats maximized
-    #TODO
+    #Make query for base item with no maximized rolls from trade site
+    query = tq.make_trade_query('online',item,misc_filters=misc_filters)
+    try:
+        response = tq.query_trade(league, query)
+    except requests.exceptions.RequestException as e:
+        SystemExit(e)
     
+    try:
+        response = tq.get_trade_results(response)
+    except requests.exceptions.RequestException as e:
+        SystemExit(e)
     #Calculate average profit on 3 to 1 trade
-    #TODO
-    
-    return data
+    base_item = response['result'][0]['item']['extended']['mods']['explicit']
+    mods = [x['magnitudes'] for x in base_item]
+    mods = list(itertools.chain.from_iterable(mods))
+    min_max = [{'min':x['min'],'max':x['max']} for x in mods]
+    ids = [x['hash'] for x in mods]
+
+    return zip(ids,min_max)
 
 def skin_of_the_loyal_3_to_1():
     """
@@ -165,21 +184,42 @@ if __name__ == "__main__":
     curr_data.get_data("Sanctum")
     gem_data.get_data("Sanctum")
     unique_data.get_data("Sanctum")
-
-    #print(curr_data)
-    #print(gem_data)
-
+#%%
     gem_data.set_regrading(curr_data)
-    #print(gem_data.p_regrade)
 
     all_gems = get_top_gem_regrade(gem_data)
     
 #%%
-    print(all_gems.sort_values('profit',ascending=False).tail(10))
+    print(all_gems.sort_values('profit',ascending=False).head(20))
     
 #%%
-    uni = unique_3to1("Stasis Prison", unique_data)
-    print(uni.iloc[0]['explicitModifiers'])
+    uni = unique_3to1("Sanctum","Thread of Hope", unique_data)
+#%%
+    for x, y in uni:
+        print(x,y)
+    
+    misc_filters = {'disabled': 'false', 'filters': {'corrupted': {'option': "false"}}}
+    stats = [{
+  "id": "explicit.stat_3642528642",
+  "value": {
+    "min": 3,
+    "max": 3
+  },
+  "disabled": False
+}]
+    #Make query for base item with no maximized rolls from trade site
+    query = tq.make_trade_query('online','Thread of Hope',misc_filters=misc_filters,stat_filters=stats)
+    try:
+        response = tq.query_trade('Sanctum', query)
+    except requests.exceptions.RequestException as e:
+        SystemExit(e)
+        
+    print(response)
     
 #%%
-    skin_of_the_loyal_3_to_1()
+    try:
+        response = tq.get_trade_results(response)
+    except requests.exceptions.RequestException as e:
+        SystemExit(e)
+    print(response)
+    #skin_of_the_loyal_3_to_1()

@@ -6,6 +6,7 @@ Created on Thu Mar  9 20:43:33 2023
 """
 #%%
 import sys
+import os
 import requests
 import pandas as pd
 from baseitem import BaseItemData
@@ -15,7 +16,12 @@ from tqdm import tqdm
 
 #%%
 class GemData(BaseItemData):
-    def __init__(self):
+    def __init__(self):  
+        path = os.getcwd()
+        dir = os.path.dirname(path)
+        dir = os.path.join(dir, 'data')
+        os.chdir(dir)
+
         self.data = pd.read_csv('gem_data.csv')
         self.gem_data = pd.DataFrame()
         self.qual_types = ['Superior','Anomalous','Divergent','Phantasmal']
@@ -23,6 +29,7 @@ class GemData(BaseItemData):
         self.gcp = 1
         self.p_regrade = 0
         self.s_regrade = 0
+        os.chdir(path)
 
     def get_data(self,league):
         response = requests.get(f"https://poe.ninja/api/data/itemoverview?league={league}&type=SkillGem")
@@ -56,15 +63,15 @@ class GemData(BaseItemData):
         elif exceptional:
             level -= 17
         try:
-            entry = df[(df['corrupted']==False)]# & (df['gemLevel']>2)]
+            entry = df[(df['corrupted']==False) & (df['corrupted']==False)]# & (df['gemLevel']>2)]
             minimum = entry.iloc[-1]['chaosValue']
-            maximum = entry.iloc[0]['chaosValue']
+            #maximum = entry.iloc[0]['chaosValue']
         except IndexError:
             raise IndexError("No Listings for gem")
         #CHANGE CHECK TO ACCOUNT FOR COST OF GCP INSTEAD FOR LOW VALUE GEMS
-        if maximum>(6*(minimum+(20*self.gcp))):
-            raise ValueError(f"Listing for {qual} {name} is Low Confidence: Min={minimum}, Max={maximum}")
-        return maximum,(entry.iloc[0]['listingCount']>10)
+        #if maximum>(6*(minimum+(20*self.gcp))):
+            #raise ValueError(f"Listing for {qual} {name} is Low Confidence: Min={minimum}, Max={maximum}")
+        return minimum,(entry.iloc[0]['listingCount']>10)
 
     def set_regrading(self,curr_data):
         #Get Secondary Regrading
