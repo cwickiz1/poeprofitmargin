@@ -49,21 +49,21 @@ armour_filters:
     ward: {min: 0, max: inf}
     
 heist_filters:
-    heist_agility: {min: 1, max: 1}
-    heist_brute_force: {min: 1, max: 1}
-    heist_counter_thaumaturgy: {max: 1, min: 1}
-    heist_deception: {min: 1, max: 1}
-    heist_demolition: {min: 1, max: 1}
-    heist_engineering: {min: 1, max: 1}
+    heist_agility: {min: 1, max: 5}
+    heist_brute_force: {min: 1, max: 5}
+    heist_counter_thaumaturgy: {max: 1, min: 5}
+    heist_deception: {min: 1, max: 5}
+    heist_demolition: {min: 1, max: 5}
+    heist_engineering: {min: 1, max: 5}
     heist_escape_routes: {max: 1, min: 1}
-    heist_lockpicking: {min: 1, max: 1}
+    heist_lockpicking: {min: 1, max: 5}
     heist_max_escape_routes: {max: 1, min: 1}
     heist_max_reward_rooms: {min: 1, max: 1}
     heist_max_wings: {min: 1, max: 1}
-    heist_objective_value: {option: "priceless"}
-    heist_perception: {min: 1, max: 1}
+    heist_objective_value: {option: ["moderate","high","precious","priceless"]}
+    heist_perception: {min: 1, max: 5}
     heist_reward_rooms: {min: 1, max: 1}
-    heist_trap_disarmament: {min: 1, max: 1}
+    heist_trap_disarmament: {min: 1, max: 5}
 
 map_filters:
     area_level: {min: 1, max: 1}
@@ -138,12 +138,6 @@ def get_trade_results(response):
     result = f'{r_result}?query={r_id}'
     
     response = requests.get(TradeQuery.item_trade_fetch_url+result, headers=TradeQuery.head)#, cache_key=cache_key)
-
-    # Check if the response was cached
-    if response.from_cache:
-        print('Loaded from cache')
-    else:
-        print('Fetched from server')
 
     return response.json()
 

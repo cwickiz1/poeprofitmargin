@@ -11,6 +11,7 @@ import requests
 import pandas as pd
 from baseitem import BaseItemData
 from currency import CurrData
+from functools import lru_cache
 
 from tqdm import tqdm
 
@@ -39,10 +40,15 @@ class GemData(BaseItemData):
             self.gem_data['vaal'] = False
             self.gem_data.loc[self.gem_data['name'].str.contains('Vaal'),'vaal'] = True
             self.gem_data['gemQuality'] = self.gem_data['gemQuality'].fillna(0).astype(int)
+            
+            #Reset gem_data Cache
+            self.get_gem_data.cache_clear()
+
         else:
             raise Exception("Response status code: {} searching {} \
                             league for Gems".format(response.status_code,league))
 
+    @lru_cache(maxsize=None)
     def get_gem_data(self,name,qual='Superior'):
         if qual != "Superior":
             name = qual + " " + name
@@ -63,7 +69,7 @@ class GemData(BaseItemData):
         elif exceptional:
             level -= 17
         try:
-            entry = df[(df['corrupted']==False) & (df['corrupted']==False)]# & (df['gemLevel']>2)]
+            entry = df[(df['corrupted']==False) & (df['gemQuality']==20)]# & (df['gemLevel']>2)]
             minimum = entry.iloc[-1]['chaosValue']
             #maximum = entry.iloc[0]['chaosValue']
         except IndexError:

@@ -14,10 +14,6 @@ from gem import GemData
 from currency import CurrData
 from uniques import UniqueData
 import tradequery as tq
-import requests_cache
-
-# Enable caching for all requests
-requests_cache.install_cache('my_cache', backend='sqlite')
 
 head = {"Content-Type": "application/json", "User-Agent": "NAME_YOU_CHOOSE"}
 
@@ -95,6 +91,7 @@ def gem_regrade(gem,gem_data):
 
     #Get gem data
     gem_qualities = gem_data.qual_types
+    cost = []
     for qual in gem_qualities:
         if gem[qual] > 0:
             data = gem_data.get_gem_data(name,qual)
@@ -104,11 +101,11 @@ def gem_regrade(gem,gem_data):
                 raise IndexError(f"No Listings for gem {qual} {name}")
             except ValueError as ve:
                 raise ve
-
+            
+            cost.append([qual,starter])
             gem_dict[qual] = {"cost":starter,"profit":0,"conf":conf}
 
     #Get Value of base gem
-    best = float('-inf')
     for qual1, qual2 in itertools.permutations(gem_dict.keys(), 2):
         cost_str = qual1+"->"+qual2
         q1v = gem_dict[qual1].get("cost")
@@ -119,35 +116,43 @@ def gem_regrade(gem,gem_data):
         gem_dict[qual1]["profit"] += (profit * odds)
 
     #Calculate best profit gem
-    for qual in gem_dict.keys():
-        prof = gem_dict[qual].get("profit")
-        if prof > best:
-            best = prof
-
-    return best, gem_dict
+    top = max(cost,key=lambda item:item[1])
+    
+    return top, gem_dict
 
 def get_top_gem_regrade(gem_data):
-    data = []
+    top_gems = []
+    prime = []
+    second = []
     i_error = []
     v_error = []
     for i in tqdm(gem_data,total=len(gem_data)):
         gem = i['type']
 
         try:
-            _, starter = gem_regrade(i,gem_data)
-            starter = [{"name": name+" "+gem, "cost": v['cost'], "profit": v['profit'], "conf": v['conf']} for name, v in starter.items()]
+            top, starter = gem_regrade(i,gem_data)
+            starter = [{"name": name+" "+gem, "cost": v['cost'], \
+                        "profit": v['profit'], "conf": v['conf']} \
+                       for name, v in starter.items()]
             starter = pd.DataFrame(starter)
-            data.append(starter)
         except IndexError as ex:
             i_error.append(ex)
         except ValueError as vs:
             v_error.append(vs)
+            
+        top_gems.append([i['type']]+top)
+        if i['support']:
+            second.append(starter)
+        else:
+            prime.append(starter)
+
 
     #print(starter)
-
-    all_gems = pd.concat(data).reset_index(drop=True)
+    top_gems = pd.DataFrame(top_gems,columns=['name','top_target','top_cost'])
+    prime_gems = pd.concat(prime).reset_index(drop=True)
+    second_gems = pd.concat(second).reset_index(drop=True)
     
-    return all_gems
+    return top_gems, prime_gems, second_gems
 
 def gem_corrupt(gem,gem_data):
     """
@@ -181,19 +186,23 @@ if __name__ == "__main__":
         print(err)
         sys.exit(1)
     
-    curr_data.get_data("Sanctum")
-    gem_data.get_data("Sanctum")
-    unique_data.get_data("Sanctum")
+    league = 'Crucible'
+    
+    curr_data.get_data(league)
+    gem_data.get_data(league)
+    unique_data.get_data(league)
 #%%
     gem_data.set_regrading(curr_data)
 
-    all_gems = get_top_gem_regrade(gem_data)
+    top_gems, prime_gems, second_gems = get_top_gem_regrade(gem_data)
     
 #%%
-    print(all_gems.sort_values('profit',ascending=False).head(20))
+    print(top_gems.sort_values('top_cost',ascending=False).head(10))
+    print(prime_gems.sort_values('profit',ascending=False).head(10))
+    print(second_gems.sort_values('profit',ascending=False).head(10))
     
 #%%
-    uni = unique_3to1("Sanctum","Thread of Hope", unique_data)
+    uni = unique_3to1(league,"Thread of Hope", unique_data)
 #%%
     for x, y in uni:
         print(x,y)
@@ -210,7 +219,7 @@ if __name__ == "__main__":
     #Make query for base item with no maximized rolls from trade site
     query = tq.make_trade_query('online','Thread of Hope',misc_filters=misc_filters,stat_filters=stats)
     try:
-        response = tq.query_trade('Sanctum', query)
+        response = tq.query_trade(league, query)
     except requests.exceptions.RequestException as e:
         SystemExit(e)
         
