@@ -6,6 +6,7 @@ Created on Thu Mar  9 20:43:33 2023
 """
 #%%
 import sys
+import time
 import os
 import requests
 import pandas as pd
@@ -15,26 +16,26 @@ from functools import lru_cache
 
 from tqdm import tqdm
 
+
 #%%
 class GemData(BaseItemData):
-    def __init__(self):  
-        path = os.getcwd()
-        dir = os.path.dirname(path)
-        dir = os.path.join(dir, 'data')
-        os.chdir(dir)
+    def __init__(self):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        path = os.path.join(dir_path, 'data')
 
-        self.data = pd.read_csv('gem_data.csv')
+        self.data = pd.read_csv(os.path.join(path,'gems.csv'))
+        self.update_time = time.time()
         self.gem_data = pd.DataFrame()
         self.qual_types = ['Superior','Anomalous','Divergent','Phantasmal']
         self.alt_qual_types = ['Anomalous','Divergent','Phantasmal']
         self.gcp = 1
         self.p_regrade = 0
         self.s_regrade = 0
-        os.chdir(path)
 
     def get_data(self,league):
         response = requests.get(f"https://poe.ninja/api/data/itemoverview?league={league}&type=SkillGem")
         if response.status_code==200:
+            self.update_time = time.time()
             self.gem_data = pd.DataFrame(response.json()['lines'])
             self.gem_data['corrupted'] = self.gem_data['corrupted'].fillna(False)
             self.gem_data['vaal'] = False

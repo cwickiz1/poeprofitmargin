@@ -28,16 +28,13 @@ class UniqueData(BaseItemData):
         Read current poe.ninja unique prices and update stored prices
     """
     def __init__(self):
-        path = os.getcwd()
-        dir = os.path.dirname(path)
-        dir = os.path.join(dir, 'data')
-        os.chdir(dir)
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        data_path = os.path.join(dir_path,"data")
         
         BaseItemData.__init__(self)
-        self.data = pd.read_csv('uniques.csv')
+        self.data = pd.read_csv(os.path.join(data_path,'uniques.csv'))
         self.unique_data = pd.DataFrame()
         self.unique_types = ['Accessory','Armour','Weapon','Flask','Jewel']
-        os.chdir(path)
 
 
     def get_data(self,league):

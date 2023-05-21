@@ -82,7 +82,7 @@ def gem_regrade(gem,gem_data):
     """
     #Set Starting Variables
     gem_dict = {}
-    name = gem['type']
+    name = gem['Name']
 
     if gem['support']:
         regrade = gem_data.s_regrade
@@ -127,7 +127,7 @@ def get_top_gem_regrade(gem_data):
     i_error = []
     v_error = []
     for i in tqdm(gem_data,total=len(gem_data)):
-        gem = i['type']
+        gem = i['Name']
 
         try:
             top, starter = gem_regrade(i,gem_data)
@@ -140,7 +140,7 @@ def get_top_gem_regrade(gem_data):
         except ValueError as vs:
             v_error.append(vs)
             
-        top_gems.append([i['type']]+top)
+        top_gems.append([i['Name']]+top)
         if i['support']:
             second.append(starter)
         else:
@@ -191,6 +191,8 @@ if __name__ == "__main__":
     curr_data.get_data(league)
     gem_data.get_data(league)
     unique_data.get_data(league)
+    
+    print(gem_data)
 #%%
     gem_data.set_regrading(curr_data)
 
@@ -200,6 +202,9 @@ if __name__ == "__main__":
     print(top_gems.sort_values('top_cost',ascending=False).head(10))
     print(prime_gems.sort_values('profit',ascending=False).head(10))
     print(second_gems.sort_values('profit',ascending=False).head(10))
+    
+#%%
+    second_gems[second_gems['name'].str.contains('Mana')]
     
 #%%
     uni = unique_3to1(league,"Thread of Hope", unique_data)

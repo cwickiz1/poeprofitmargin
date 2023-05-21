@@ -4,9 +4,13 @@ Created on Mon Mar 13 14:53:00 2023
 
 @author: wicki
 """
+import os
 import requests
 import pandas as pd
 from bs4 import BeautifulSoup
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+data_path = os.path.join(dir_path,"data")
 
 def update_data():
     #Pull all items from GGG
@@ -21,7 +25,7 @@ def update_data():
     #Update Currency
     #collect_currency(items) 
     #Update Gems
-    #collect_gems(items)
+    collect_gems()
     return items
 
 def collect_uniques(items):
@@ -49,10 +53,11 @@ def collect_uniques(items):
     uniques = pd.concat([accessories,armour,weapons,jewels,flasks])
     uniques = uniques.drop('flags',axis=1)
     
-    uniques.to_csv("uniques.csv",index=False)
+    uniques.to_csv(os.path.join(data_path,"uniques.csv"),index=False)
     
 def collect_gems():
     gems = pd.read_html("http://www.vhpg.com/poe-alternate-quality-gems/")[0]
+    print(len(gems))
     gem_names = gems['Name'].copy()
     gems = gems.rename({"Weight": "Superior"},axis=1)
     
@@ -90,7 +95,7 @@ def collect_gems():
             comp = qual+"->"+qual_c
             gems[comp] = gems[qual_c] / (gems['total']-gems[qual])
     
-    gems.to_csv("gems.csv",index=False)
+    gems.to_csv(os.path.join(data_path,"gems.csv"),index=False)
     
 def collect_div_cards(items):
     cards = pd.DataFrame(items[2]['entries'])
