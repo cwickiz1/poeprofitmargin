@@ -11,6 +11,51 @@ from gem import GemData
 from currency import CurrData
 from poeprofitmargin import get_top_gem_regrade
 
+class GemFrame(customtkinter.CTkFrame):
+    def __init__(self, container, *args, **kwargs):
+        super().__init__(container)
+        self.canvas = customtkinter.CTkScrollableFrame(self)
+        self.button = customtkinter.CTkButton(self, command=self.gem_regrade_callback)
+        self.click_counter = 0
+
+        self.canvas.grid(row=0, column=0)
+        self.button.grid(row=1, column=0)
+        
+    def button_callback(self):
+        print("Gem Button Clicked")
+        
+    def gem_regrade_callback(self):
+        self.click_counter += 1
+        for i in range(10):
+            self.expandable_widget = ExpandableWidget(self.canvas, f"Entry {i+1}\n{self.click_counter}",["First","Second","Third"])
+            self.expandable_widget.grid(row=i, column=0, padx=0, pady=(0, 0))
+
+class ExpandableWidget(customtkinter.CTkFrame):
+    def __init__(self, parent, title, data):
+        customtkinter.CTkFrame.__init__(self, parent)
+
+        self.title_label = customtkinter.CTkLabel(self, text=title, width=200, bg_color="grey",justify='left')
+        self.title_label.pack(fill="x")
+        
+        self.data = data
+
+        self.content_frame = customtkinter.CTkFrame(self)
+        self.is_expanded = False
+
+        self.title_label.bind("<Button-1>", self.toggle)
+
+    def toggle(self, event):
+        if not self.is_expanded:
+            self.is_expanded = True
+            self.content_frame.pack(fill="x")
+            for i in self.data:
+                label = customtkinter.CTkLabel(self.content_frame, text=i)
+                label.pack()
+        else:
+            self.is_expanded = False
+            self.content_frame.pack_forget()
+
+
 class MenuFrame(customtkinter.CTkFrame):
     def __init__(self, master, gem_data, curr_data):
         super().__init__(master)
@@ -80,13 +125,23 @@ class App(customtkinter.CTk):
         self.curr_data.get_data('Crucible')
 
         self.title("my app")
-        self.geometry("400x180")
+        #self.geometry("800x400")
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure((0, 1), weight=1)
 
-        self.menu_frame = MenuFrame(self, self.gem_data, self.curr_data)
-        self.menu_frame.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsw")
+        #self.menu_frame = MenuFrame(self, self.gem_data, self.curr_data)
+        #self.menu_frame.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsw")
         
+        self.title("Path of Exile EV Calculator")
+
+        self.frame = GemFrame(self)
+        self.frame.grid(row=0, column=0, sticky="w")
+
+        """
+        for i in range(10):
+            self.expandable_widget = ExpandableWidget(self.frame.canvas, f"Entry {i+1}")
+            self.expandable_widget.grid(row=i, column=0, padx=0, pady=(0, 0))
+        """
         self.button = customtkinter.CTkButton(self, text="my button", command=self.button_callback)
         self.button.grid(row=3, column=0, padx=10, pady=10, sticky="ew")
     
