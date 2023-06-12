@@ -127,11 +127,33 @@ class TradeQuery():
     item_trade_query_url = 'https://www.pathofexile.com/api/trade/search/'
     item_trade_fetch_url = 'https://www.pathofexile.com/api/trade/fetch/'
 
-def query_trade(league,payload):
+def post_trade(league,payload):
+    """
+    Parameters
+    ----------
+    league : str
+        Name of Path of Exile trade league being queried for items.
+    payload : dict
+        JSON payload containing filters to POST to trade api.
+
+    Returns
+    -------
+    response from trade api containing result ids to be used for fetch api call.
+    """
     response = requests.post(TradeQuery.item_trade_query_url+league, json=payload, headers=TradeQuery.head).json()
     return response
 
 def get_trade_results(response):
+    """
+    Parameters
+    ----------
+    response : dict
+        JSON ibject containing id info to be used to query fetch api from pathofexile.
+
+    Returns
+    -------
+    JSON object containing response body from pathofexile item fetch.
+    """
     #cache_key = (f'{url}/{payload}',)
     r_id = response['id']
     r_result = ','.join(response['result'][:10])
@@ -140,6 +162,31 @@ def get_trade_results(response):
     response = requests.get(TradeQuery.item_trade_fetch_url+result, headers=TradeQuery.head)#, cache_key=cache_key)
 
     return response.json()
+
+def query_trade(league,payload):
+    """
+    Parameters
+    ----------
+    status : TYPE
+        DESCRIPTION.
+    name : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+    """
+    try:
+        response = post_trade(league, payload)
+    except requests.exceptions.RequestException:
+        raise requests.exceptions.RequestException()
+    
+    try:
+        data = get_trade_results(response)
+    except requests.exceptions.RequestException:
+        raise requests.exceptions.RequestException()
+    
+    return data
 
 def make_filter(name):
     pass

@@ -17,6 +17,9 @@ class GemFrame(customtkinter.CTkFrame):
         self.canvas = customtkinter.CTkScrollableFrame(self)
         self.button = customtkinter.CTkButton(self, command=self.gem_regrade_callback)
         self.click_counter = 0
+        
+        self.gem_data = kwargs['gem_data']
+        self.curr_data = kwargs['curr_data']
 
         self.canvas.grid(row=0, column=0)
         self.button.grid(row=1, column=0)
@@ -134,7 +137,7 @@ class App(customtkinter.CTk):
         
         self.title("Path of Exile EV Calculator")
 
-        self.frame = GemFrame(self)
+        self.frame = GemFrame(self,gem_data=self.gem_data,curr_data=self.curr_data)
         self.frame.grid(row=0, column=0, sticky="w")
 
         """

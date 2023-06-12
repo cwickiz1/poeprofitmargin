@@ -28,6 +28,22 @@ def update_data():
     collect_gems()
     return items
 
+def collect_mod_data():
+    """
+    Query path of exile stat api for ids and descriptions of item modifiers
+    """
+    url = "https://www.pathofexile.com/api/trade/data/stats"
+    head = {"Content-Type": "application/json", "User-Agent": "NAME_YOU_CHOOSE"}
+    try:
+        items = requests.get(url,headers=head).json()['result']
+    except:
+        raise Exception(f"Failed to pull data from {url}")
+    
+    mod_df = [pd.DataFrame(x['entries']) for x in items]
+    mod_df = pd.concat(mod_df)
+    mod_df.to_csv(os.path.join(data_path,"mods.csv"),index=False)
+
+
 def collect_uniques(items):
     accessories = pd.DataFrame(items[0]['entries'])
     accessories = accessories.fillna(False)
