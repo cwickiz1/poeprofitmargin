@@ -146,8 +146,9 @@ def collect_currency(items):
     uniques.to_csv("uniques.csv",index=False)
     
 if __name__ == "__main__":
-    items = update_data()
-    cards = pd.DataFrame(items[2]['entries'])
+    #items = update_data()
+    collect_mod_data()
+    #cards = pd.DataFrame(items[2]['entries'])
     """
     card_url = 'https://poedb.tw/us/Divination_Cards'
     response = requests.get(card_url)

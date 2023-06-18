@@ -29,6 +29,28 @@ class UniqueData(BaseItemData):
     get_data(additional=""):
         Read current poe.ninja unique prices and update stored prices
     """
+    @staticmethod
+    def __get_item_mods(item):
+        """
+        Helper function to get the item mods and ranges from an individual item from poe.trade api
+        -------------
+        
+        Parameters
+        -------------
+        item: json object containing info of item from trade site 
+        -------------
+        
+        Returns
+        -------------
+        dataframe of mods and their values for trade site
+        """
+        base_item = item['item']['extended']['mods']['explicit']
+        mods = [x['magnitudes'] for x in base_item]
+        mods = list(itertools.chain.from_iterable(mods))
+        item_dict = [{'id':x['hash'],'min':x['min'],'max':x['max']} for x in mods]
+        df = pd.DataFrame(item_dict)
+        return df
+    
     def __init__(self,league):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         data_path = os.path.join(dir_path,"data")
@@ -36,6 +58,7 @@ class UniqueData(BaseItemData):
         BaseItemData.__init__(self)
         self.league = league
         self.data = pd.read_csv(os.path.join(data_path,'uniques.csv'))
+        self.mods = pd.read_csv(os.path.join(data_path,'mods.csv'))
         self.unique_types = ['Accessory','Armour','Weapon','Flask','Jewel']
         self.unique_data = pd.DataFrame()
         self.get_data()
@@ -62,7 +85,7 @@ class UniqueData(BaseItemData):
         else:
             return None
     
-    def unique_3to1(self,item):
+    def get_item_info(self,item):
         """
         Parameters
         -------------
@@ -85,16 +108,17 @@ class UniqueData(BaseItemData):
         #Make query for base item with no maximized rolls from trade site
         query = tq.make_trade_query('online',item,misc_filters=misc_filters)
         
+        #Get first item from query
         response = tq.query_trade(self.league, query)
+        base_item = response['result'][0]
         
         #Calculate average profit on 3 to 1 trade
-        base_item = response['result'][0]['item']['extended']['mods']['explicit']
-        mods = [x['magnitudes'] for x in base_item]
-        mods = list(itertools.chain.from_iterable(mods))
-        min_max = [{'min':x['min'],'max':x['max']} for x in mods]
-        ids = [x['hash'] for x in mods]
+        df = self.__get_item_mods(base_item)
+        df['item'] = item
+        
+        cost = 100
 
-        return (ids,min_max)
+        return len(response['result']), cost, df
     
     def set_league(self,league: str):
         self.league = league
@@ -108,4 +132,4 @@ if __name__=="__main__":
     print(data)
     print(data.unique_data[~data.unique_data['links'].isna()])
 #%%
-    print(data.unique_3to1("Stasis Prison"))
+    print("{}\n{}\n{}".format(*data.get_item_info("Ventor's Gamble")))

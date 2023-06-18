@@ -167,14 +167,14 @@ def query_trade(league,payload):
     """
     Parameters
     ----------
-    status : TYPE
-        DESCRIPTION.
-    name : TYPE
-        DESCRIPTION.
+    league : str
+        Name of Path of Exile trade league being queried for items.
+    payload : dict
+        JSON payload containing filters to POST to trade api.
 
     Returns
     -------
-    None.
+    response from fetch api containing result of the items that fulfill the payload filter.
     """
     try:
         response = post_trade(league, payload)
@@ -227,8 +227,6 @@ def make_trade_query(status,name=None,misc_filters=None,stat_filters=None):
 
 def make_bulk_query(have : list, want : list, minimum : int):
     """
-    
-
     Parameters
     ----------
     have : list
