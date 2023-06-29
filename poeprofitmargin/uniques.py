@@ -6,6 +6,7 @@ Created on Sat Mar 11 20:37:28 2023
 """
 import os
 import requests
+import numpy as np
 import pandas as pd
 import tradequery as tq
 from baseitem import BaseItemData
@@ -109,9 +110,11 @@ class UniqueData(BaseItemData):
         query = tq.make_trade_query('online',item,misc_filters=misc_filters)
         
         #Get first item from query
-        response = tq.query_trade(self.league, query)
+        response = tq.query_trade(self.league, query,10)
         base_item = response['result'][0]
-        
+        cost = pd.DataFrame([x['listing']['price'] for x in response['result']])
+        print(cost)
+
         #Calculate average profit on 3 to 1 trade
         df = self.__get_item_mods(base_item)
         df['item'] = item

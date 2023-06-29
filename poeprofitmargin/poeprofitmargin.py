@@ -168,29 +168,30 @@ def div_card_turn_in(div_card,div_data,item_data):
 
 
 if __name__ == "__main__":
+    league = 'Crucible'
     try:
-        gem_data = GemData()
+        gem_data = GemData(league)
     except Exception as err:
         print(err)
         sys.exit(1)
 
     try:
-        curr_data = CurrData()
+        curr_data = CurrData(league)
     except Exception as err:
         print(err)
         sys.exit(1)
     
     try:
-        unique_data = UniqueData()
+        unique_data = UniqueData(league)
     except Exception as err:
         print(err)
         sys.exit(1)
     
     league = 'Crucible'
     
-    curr_data.get_data(league)
-    gem_data.get_data(league)
-    unique_data.get_data(league)
+    curr_data.get_data()
+    gem_data.get_data()
+    unique_data.get_data()
     
     print(gem_data)
 #%%

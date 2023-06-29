@@ -19,10 +19,11 @@ from tqdm import tqdm
 
 #%%
 class GemData(BaseItemData):
-    def __init__(self):
+    def __init__(self, league):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         path = os.path.join(dir_path, 'data')
-
+        
+        self.league = league
         self.data = pd.read_csv(os.path.join(path,'gems.csv'))
         self.update_time = time.time()
         self.gem_data = pd.DataFrame()
@@ -32,8 +33,8 @@ class GemData(BaseItemData):
         self.p_regrade = 0
         self.s_regrade = 0
 
-    def get_data(self,league):
-        response = requests.get(f"https://poe.ninja/api/data/itemoverview?league={league}&type=SkillGem")
+    def get_data(self):
+        response = requests.get(f"https://poe.ninja/api/data/itemoverview?league={self.league}&type=SkillGem")
         if response.status_code==200:
             self.update_time = time.time()
             self.gem_data = pd.DataFrame(response.json()['lines'])

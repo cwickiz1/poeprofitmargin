@@ -7,7 +7,6 @@ Created on Mon Mar 13 14:53:00 2023
 import os
 import requests
 import pandas as pd
-from bs4 import BeautifulSoup
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 data_path = os.path.join(dir_path,"data")

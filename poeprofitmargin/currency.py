@@ -10,17 +10,18 @@ import time
 import pandas as pd
 
 class CurrData():
-    def __init__(self):
+    def __init__(self, league):
+        self.league = league
         self.update_time = time.time()
         self.curr_data = pd.DataFrame()
     
-    def get_data(self,league):
-        response = requests.get(f"https://poe.ninja/api/data/currencyoverview?league={league}&type=Currency") 
+    def get_data(self):
+        response = requests.get(f"https://poe.ninja/api/data/currencyoverview?league={self.league}&type=Currency") 
         if response.status_code==200:
             self.update_time = time.time()
             self.curr_data = pd.DataFrame(response.json()['lines'])
         else:
-            raise Exception("Response status code: {} searching {} league for Currency".format(response.status_code,league))
+            raise Exception("Response status code: {} searching {} league for Currency".format(response.status_code,self.league))
             
     def __str__(self):
         return "CurrData contains {} items".format(len(self.curr_data))

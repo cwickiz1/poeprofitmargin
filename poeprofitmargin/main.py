@@ -11,7 +11,7 @@ from gem import GemData
 from currency import CurrData
 from poeprofitmargin import get_top_gem_regrade
 
-class GemFrame(customtkinter.CTkFrame):
+class UniqueFrame(customtkinter.CTkFrame):
     def __init__(self, container, *args, **kwargs):
         super().__init__(container)
         self.canvas = customtkinter.CTkScrollableFrame(self)
@@ -32,6 +32,40 @@ class GemFrame(customtkinter.CTkFrame):
         for i in range(10):
             self.expandable_widget = ExpandableWidget(self.canvas, f"Entry {i+1}\n{self.click_counter}",["First","Second","Third"])
             self.expandable_widget.grid(row=i, column=0, padx=0, pady=(0, 0))
+
+class GemFrame(customtkinter.CTkFrame):
+    def __init__(self, container, *args, **kwargs):
+        super().__init__(container)
+        self.canvas = customtkinter.CTkScrollableFrame(self)
+        self.button = customtkinter.CTkButton(self, command=self.gem_regrade_callback)
+        self.click_counter = 0
+        
+        self.gem_data = kwargs['gem_data']
+        self.curr_data = kwargs['curr_data']
+
+        self.canvas.grid(row=0, column=0)
+        self.button.grid(row=1, column=0)
+        
+    def button_callback(self):
+        print("Gem Button Clicked")
+        
+    def gem_regrade_callback(self):
+        curr_time = time.time()
+        if curr_time > self.gem_data.update_time + 300:
+            self.gem_data.get_data()
+        
+        if curr_time > self.curr_data.update_time + 300:
+            self.curr_data.get_data()
+            
+        self.gem_data.set_regrading(self.curr_data)
+        
+        top_gems, prime_gems, second_gems = get_top_gem_regrade(self.gem_data)
+        
+        data = prime_gems.sort_values('profit',ascending=False).head(10).reset_index(drop=True)
+        
+        for ind, i in data.iterrows():
+            self.expandable_widget = ExpandableWidget(self.canvas, f"{i['name']}",[f"{i['cost']}",f"{i['profit']}"])
+            self.expandable_widget.grid(row=ind, column=0, padx=0, pady=(0, 0))
 
 class ExpandableWidget(customtkinter.CTkFrame):
     def __init__(self, parent, title, data):
@@ -76,10 +110,10 @@ class MenuFrame(customtkinter.CTkFrame):
     def gem_regrade_click(self):
         curr_time = time.time()
         if curr_time > self.gem_data.update_time + 300:
-            self.gem_data.get_data('Crucible')
+            self.gem_data.get_data()
         
         if curr_time > self.curr_data.update_time + 300:
-            self.curr_data.get_data('Crucible')
+            self.curr_data.get_data()
             
         self.gem_data.set_regrading(self.curr_data)
         
@@ -121,11 +155,11 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         
-        self.gem_data = GemData()
-        self.gem_data.get_data('Crucible')
+        self.gem_data = GemData('Crucible')
+        self.gem_data.get_data()
         
-        self.curr_data = CurrData()
-        self.curr_data.get_data('Crucible')
+        self.curr_data = CurrData('Crucible')
+        self.curr_data.get_data()
 
         self.title("my app")
         #self.geometry("800x400")
@@ -139,6 +173,9 @@ class App(customtkinter.CTk):
 
         self.frame = GemFrame(self,gem_data=self.gem_data,curr_data=self.curr_data)
         self.frame.grid(row=0, column=0, sticky="w")
+        
+        self.frame = UniqueFrame(self,gem_data=self.gem_data,curr_data=self.curr_data)
+        self.frame.grid(row=0, column=1, sticky="w")
 
         """
         for i in range(10):

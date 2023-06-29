@@ -141,9 +141,9 @@ def post_trade(league,payload):
     response from trade api containing result ids to be used for fetch api call.
     """
     response = requests.post(TradeQuery.item_trade_query_url+league, json=payload, headers=TradeQuery.head).json()
-    return response
+    return response['id'],response['result']
 
-def get_trade_results(response):
+def get_trade_results(trade_id,trade_ids):
     """
     Parameters
     ----------
@@ -155,15 +155,16 @@ def get_trade_results(response):
     JSON object containing response body from pathofexile item fetch.
     """
     #cache_key = (f'{url}/{payload}',)
-    r_id = response['id']
-    r_result = ','.join(response['result'][:10])
-    result = f'{r_result}?query={r_id}'
+    base = 0
+    while len(trade_ids) > base+10:
+        r_result = ','.join(trade_ids[base:base+10])
+        result = f'{r_result}?query={trade_id}'
     
-    response = requests.get(TradeQuery.item_trade_fetch_url+result, headers=TradeQuery.head)#, cache_key=cache_key)
+        response = requests.get(TradeQuery.item_trade_fetch_url+result, headers=TradeQuery.head)#, cache_key=cache_key)
 
     return response.json()
 
-def query_trade(league,payload):
+def query_trade(league,payload,listing=10):
     """
     Parameters
     ----------
@@ -177,12 +178,14 @@ def query_trade(league,payload):
     response from fetch api containing result of the items that fulfill the payload filter.
     """
     try:
-        response = post_trade(league, payload)
+        trade_id, trade_ids = post_trade(league, payload)
     except requests.exceptions.RequestException:
         raise requests.exceptions.RequestException()
     
+    if len(trade_ids) < listing:
+        listing = len(trade_ids)
     try:
-        data = get_trade_results(response)
+        data = get_trade_results(trade_id,trade_ids[:listing])
     except requests.exceptions.RequestException:
         raise requests.exceptions.RequestException()
     
