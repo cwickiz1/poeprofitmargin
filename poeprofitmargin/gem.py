@@ -86,51 +86,41 @@ class GemData(BaseItemData):
         self.s_regrade = curr_data.curr_data[curr_data.curr_data["currencyTypeName"]=="Secondary Regrading Lens"].iloc[0]['chaosEquivalent']
         #Get Prime Regrading
         self.p_regrade = curr_data.curr_data[curr_data.curr_data["currencyTypeName"]=="Prime Regrading Lens"].iloc[0]['chaosEquivalent']
-
+        
+    def vaal_gem(self,name,qual='Superior'):
+        data = self.get_gem_data(name,qual)
+        return data
     def __str__(self):
         return "GemData contains {} items".format(len(self.data))
 
 #%%
 
 if __name__ == "__main__":
+    
+    league = 'Ancestor'
     try:
-        gem_data = GemData()
+        gem_data = GemData(league)
     except Exception as err:
         print(err)
         sys.exit(1)
 
     try:
-        curr_data = CurrData()
+        curr_data = CurrData(league)
     except Exception as err:
         print(err)
         sys.exit(1)
-    curr_data.get_data("Sanctum")
-    gem_data.get_data("Sanctum")
-    #print(curr_data)
-    #print(gem_data)
+    curr_data.get_data()
+    gem_data.get_data()
+    print(curr_data)
+    print(gem_data)
 
+#%%
+    data = gem_data.vaal_gem('Tornado Shot','Divergent')
+    print(data)
+
+#%%
     gem_data.set_regrading(curr_data)
-    #print(gem_data.p_regrade)
-
-    regrade = 0
-    data = []
-    i_error = []
-    v_error = []
-    for i in tqdm(gem_data,total=len(gem_data)):
-        gem = i['type']
-
-        try:
-            _, starter = gem_data.get_gem_regrade_profit_margin(i)
-            starter = [{"name": name+" "+gem, "cost": v['cost'], "profit": v['profit'], "conf": v['conf']} for name, v in starter.items()]
-            starter = pd.DataFrame(starter)
-            data.append(starter)
-        except IndexError as ex:
-            i_error.append(ex)
-        except ValueError as vs:
-            v_error.append(vs)
-
-    #print(starter)
-
-    all_gems = pd.concat(data).reset_index(drop=True)
-
-    print(all_gems.sort_values('profit',ascending=False).head())
+    print(gem_data.p_regrade)
+#%%
+    entry = gem_data.get_entry_gem_value(df, name, qual)
+    print(starter)

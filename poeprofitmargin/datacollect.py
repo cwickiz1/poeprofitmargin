@@ -11,6 +11,21 @@ import pandas as pd
 dir_path = os.path.dirname(os.path.realpath(__file__))
 data_path = os.path.join(dir_path,"data")
 
+def get_leagues():
+    url = 'https://www.pathofexile.com/api/trade/data/leagues'
+    head = {"Content-Type": "application/json", "User-Agent": "NAME_YOU_CHOOSE"}
+    
+    try:
+        leagues = requests.get(url,headers=head).json()['result']
+    except:
+        raise Exception(f"Failed to pull data from {url}")
+        
+    df = pd.DataFrame(leagues)
+    
+    print(df)
+
+    return leagues
+
 def update_data():
     #Pull all items from GGG
     url = 'https://www.pathofexile.com/api/trade/data/items'
@@ -145,8 +160,8 @@ def collect_currency(items):
     uniques.to_csv("uniques.csv",index=False)
     
 if __name__ == "__main__":
-    #items = update_data()
-    collect_mod_data()
+    items = update_data()
+    get_leagues()
     #cards = pd.DataFrame(items[2]['entries'])
     """
     card_url = 'https://poedb.tw/us/Divination_Cards'

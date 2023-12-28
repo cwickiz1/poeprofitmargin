@@ -158,6 +158,10 @@ def gem_corrupt(gem,gem_data):
     """
     return profit margin for single corrupting and double corrupting gems
     """
+    info = {}
+    data = gem_data.get_gem_data(gem,'Superior')
+    print(data)
+    return info
     pass
 
 def div_card_turn_in(div_card,div_data,item_data):
@@ -168,7 +172,7 @@ def div_card_turn_in(div_card,div_data,item_data):
 
 
 if __name__ == "__main__":
-    league = 'Crucible'
+    league = 'Ancestor'
     try:
         gem_data = GemData(league)
     except Exception as err:
@@ -186,9 +190,7 @@ if __name__ == "__main__":
     except Exception as err:
         print(err)
         sys.exit(1)
-    
-    league = 'Crucible'
-    
+        
     curr_data.get_data()
     gem_data.get_data()
     unique_data.get_data()
@@ -206,6 +208,9 @@ if __name__ == "__main__":
     
 #%%
     second_gems[second_gems['name'].str.contains('Mana')]
+
+#%%
+    corrupt = gem_corrupt('Mana Leech Support', gem_data)
     
 #%%
     uni = unique_3to1(league,"Thread of Hope", unique_data)

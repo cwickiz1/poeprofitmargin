@@ -7,6 +7,7 @@ Created on Fri May 19 19:10:07 2023
 
 import customtkinter
 import time
+import pandas as pd
 from gem import GemData
 from currency import CurrData
 from poeprofitmargin import get_top_gem_regrade
@@ -61,7 +62,10 @@ class GemFrame(customtkinter.CTkFrame):
         
         top_gems, prime_gems, second_gems = get_top_gem_regrade(self.gem_data)
         
-        data = prime_gems.sort_values('profit',ascending=False).head(10).reset_index(drop=True)
+        prime_best = prime_gems.sort_values('profit',ascending=False).head(10).reset_index(drop=True)
+        second_best = second_gems.sort_values('profit',ascending=False).head(10).reset_index(drop=True)
+        
+        data = pd.concat([prime_best,second_best]).sort_values('profit',ascending=False).reset_index(drop=True)
         
         for ind, i in data.iterrows():
             self.expandable_widget = ExpandableWidget(self.canvas, f"{i['name']}",[f"{i['cost']}",f"{i['profit']}"])
@@ -85,12 +89,13 @@ class ExpandableWidget(customtkinter.CTkFrame):
         if not self.is_expanded:
             self.is_expanded = True
             self.content_frame.pack(fill="x")
-            for i in self.data:
-                label = customtkinter.CTkLabel(self.content_frame, text=i)
+            for ind, i in enumerate(self.data):
+                label = customtkinter.CTkLabel(self.content_frame, text=f"{ind}_{i}")
                 label.pack()
         else:
             self.is_expanded = False
-            self.content_frame.pack_forget()
+            self.content_frame.destroy()
+            self.content_frame = customtkinter.CTkFrame(self)
 
 
 class MenuFrame(customtkinter.CTkFrame):
@@ -154,11 +159,11 @@ class MyCheckboxFrame(customtkinter.CTkFrame):
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
-        
-        self.gem_data = GemData('Crucible')
+        league = 'Ancestor'
+        self.gem_data = GemData(league)
         self.gem_data.get_data()
         
-        self.curr_data = CurrData('Crucible')
+        self.curr_data = CurrData(league)
         self.curr_data.get_data()
 
         self.title("my app")
