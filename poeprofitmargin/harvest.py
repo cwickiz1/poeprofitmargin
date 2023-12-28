@@ -8,6 +8,7 @@ Created on Wed Dec 27 19:41:49 2023
 from tradequery import make_bulk_query
 import requests
 from time import sleep
+from cachetools.func import ttl_cache
 
 class Lifeforce():
     bulk_cost = {'Primal':0,
@@ -82,14 +83,17 @@ class Delirium():
              "Timeless",
              "Whispering",
              "Obscured"]
-    
+
+@ttl_cache(1,360)
 def get_bulk_lifeforce(league):
     """
     Gather lifeforce count per divine from poe bulk trade site
     """
     head = {"Content-Type": "application/json", "User-Agent": "NAME_YOU_CHOOSE"}
     url = f'https://www.pathofexile.com/api/trade/exchange/{league}'
+    listings = 20
     
+    data = []
     for key in Lifeforce.bulk_cost.keys():
         #Get Bulk Cost
         low = key.lower()
@@ -101,9 +105,21 @@ def get_bulk_lifeforce(league):
         if 'error' in r:
             print(r['error']['message'])
             break
-        print(r['result'].keys()[:20])
-        Lifeforce.bulk_cost[key] = 1000
+        entry = r['result']
+        total = 0    
+        for key in list(entry.keys())[:listings]:
+            cost = entry[key]['listing']['offers'][0]['exchange']['amount']
+            print(cost)
+            amount = entry[key]['listing']['offers'][0]['item']['amount']
+            print(amount)
+            total += amount/cost
+        avg = total/listings
+        data.append(r)
+        #print(r['result'].keys()[:20])
+        Lifeforce.bulk_cost[key] = avg
         sleep(2)
+    
+    return data
 
 def reroll_scarabs():
     scarab_EV = 0
@@ -112,5 +128,17 @@ def reroll_scarabs():
     
 if __name__=="__main__":
     league = 'Affliction'
-    get_bulk_lifeforce(league)
+    data = get_bulk_lifeforce(league)
+#%%
+    entry = data[0]['result']
+#%%
+    total = 0    
+    for key in list(entry.keys())[:20]:
+        cost = entry[key]['listing']['offers'][0]['exchange']['amount']
+        print(cost)
+        amount = entry[key]['listing']['offers'][0]['item']['amount']
+        print(amount)
+        total += amount/cost
+    print(total/20)
+#%%
     print(Lifeforce.bulk_cost)
