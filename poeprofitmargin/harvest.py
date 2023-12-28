@@ -4,6 +4,11 @@ Created on Wed Dec 27 19:41:49 2023
 
 @author: wicki
 """
+
+from tradequery import make_bulk_query
+import requests
+from time import sleep
+
 class Lifeforce():
     bulk_cost = {'Primal':0,
                 'Wild':0,
@@ -77,13 +82,28 @@ class Delirium():
              "Timeless",
              "Whispering",
              "Obscured"]
-def get_bulk_lifeforce():
+    
+def get_bulk_lifeforce(league):
     """
     Gather lifeforce count per divine from poe bulk trade site
     """
+    head = {"Content-Type": "application/json", "User-Agent": "NAME_YOU_CHOOSE"}
+    url = f'https://www.pathofexile.com/api/trade/exchange/{league}'
+    
     for key in Lifeforce.bulk_cost.keys():
         #Get Bulk Cost
+        low = key.lower()
+        query = make_bulk_query(['divine'], [f'{low}-lifeforce'], 0)
+        print(query)
+        r = requests.post(url,json=query,headers=head).json()
+        print(r)
+        #Check for ratelimit
+        if 'error' in r:
+            print(r['error']['message'])
+            break
+        print(r['result'].keys()[:20])
         Lifeforce.bulk_cost[key] = 1000
+        sleep(2)
 
 def reroll_scarabs():
     scarab_EV = 0
@@ -91,5 +111,6 @@ def reroll_scarabs():
     return scarab_EV
     
 if __name__=="__main__":
-    get_bulk_lifeforce()
+    league = 'Affliction'
+    get_bulk_lifeforce(league)
     print(Lifeforce.bulk_cost)

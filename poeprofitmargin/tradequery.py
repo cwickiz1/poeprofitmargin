@@ -257,17 +257,18 @@ def make_bulk_query(have : list, want : list, minimum : int):
     }
 
     return query
-
+#%%
 if __name__ == "__main__":
     head = {"Content-Type": "application/json", "User-Agent": "NAME_YOU_CHOOSE"}
     
     #Test Bulk Exchange Query
-    url = 'https://www.pathofexile.com/api/trade/exchange/Sanctum'
+    league = 'Affliction'
+    url = f'https://www.pathofexile.com/api/trade/exchange/{league}'
     query = make_bulk_query(['chaos'], ['exalted'], 0)
     print(query)
     r = requests.post(url,json=query,headers=head)
     print(r.json())
-    
+#%%    
     #Test Item Trade Query
     url = 'https://www.pathofexile.com/api/trade/search/Sanctum'
     query = make_trade_query('online')
